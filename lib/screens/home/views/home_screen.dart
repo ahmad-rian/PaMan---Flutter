@@ -4,7 +4,6 @@ import 'package:navigation/screens/sidebar/sidebar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:navigation/screens/add_password/add_password_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,40 +12,15 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   String userName = '';
-  late AnimationController _notificationController;
-  late Animation<Offset> _notificationAnimation;
-  String _notificationMessage = '';
   String _greeting = '';
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
-    _initializeNotificationAnimation();
     _updateGreeting();
-  }
-
-  void _initializeNotificationAnimation() {
-    _notificationController = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 300),
-    );
-    _notificationAnimation = Tween<Offset>(
-      begin: Offset(0, -1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _notificationController,
-      curve: Curves.easeOut,
-    ));
-  }
-
-  @override
-  void dispose() {
-    _notificationController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadUserName() async {
@@ -57,11 +31,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _updateGreeting() {
-    final now = DateTime.now()
-        .toUtc()
-        .add(Duration(hours: 7)); // Convert to Asia/Jakarta timezone
-    final hour = now.hour;
-
+    final hour = DateTime.now().hour;
     setState(() {
       if (hour < 12) {
         _greeting = 'Good Morning';
@@ -75,22 +45,13 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  void _showNotification(String message) {
-    setState(() {
-      _notificationMessage = message;
-    });
-    _notificationController.forward(from: 0.0);
-    Future.delayed(Duration(seconds: 2), () {
-      _notificationController.reverse();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Password Manager', style: TextStyle(color: Colors.black)),
+        title: Text('Password Manager',
+            style: TextStyle(color: Colors.black, fontSize: 20)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.black),
@@ -104,131 +65,86 @@ class _HomeScreenState extends State<HomeScreen>
         },
         currentRoute: '/home',
       ),
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Hello, $userName',
-                              style: TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.bold)),
-                          Text(_greeting, style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
-                      IconButton(
-                          icon: Icon(Icons.notifications_none),
-                          onPressed: () {}),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search Password',
-                      hintStyle: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey[600],
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.grey[600],
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text('Category',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildCategoryButton(
-                          Icons.people, 'Social', Colors.blue[100]!),
-                      _buildCategoryButton(
-                          Icons.web, 'Browse', Colors.green[100]!),
-                      _buildCategoryButton(
-                          Icons.credit_card, 'Card', Colors.red[100]!),
-                      _buildCategoryButton(
-                          Icons.work, 'Work', Colors.orange[100]!),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  Text('Recent Used',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  SizedBox(height: 10),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        _buildPasswordItem('Google Account',
-                            'alriansr@gmail.com', Colors.blue),
-                        _buildPasswordItem('Netflix Personal',
-                            'alriansr@gmail.com', Colors.red),
-                        _buildPasswordItem(
-                            'Twitter', 'rian_syaifullah', Colors.lightBlue),
-                        _buildPasswordItem(
-                            'Instagram', 'rian_syaifullah', Colors.pink),
-                        _buildPasswordItem(
-                            'Facebook', 'rian_syaifullah', Colors.pink),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SlideTransition(
-            position: _notificationAnimation,
-            child: CustomNotification(message: _notificationMessage),
-          ),
-        ],
-      ),
-      floatingActionButton: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.teal.withOpacity(0.4),
-              spreadRadius: 2,
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
+      body: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.all(20.0),
+          children: [
+            _buildGreetingSection(),
+            SizedBox(height: 20),
+            _buildSearchBar(),
+            SizedBox(height: 20),
+            _buildCategorySection(),
+            SizedBox(height: 20),
+            _buildRecentUsedSection(),
           ],
         ),
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => AddPasswordScreen(),
-            ));
-          },
-          icon: Icon(Icons.add, color: Colors.white),
-          label: Text('Add Account', style: TextStyle(color: Colors.white)),
-          backgroundColor: Colors.teal,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+      ),
+      floatingActionButton: _buildAddAccountButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildGreetingSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hello, $userName',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(_greeting, style: TextStyle(color: Colors.grey)),
+            ],
           ),
         ),
+        IconButton(
+          icon: Icon(Icons.notifications_none),
+          onPressed: () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return TextField(
+      decoration: InputDecoration(
+        hintText: 'Search Password',
+        hintStyle: TextStyle(color: Colors.grey[600]),
+        prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+        filled: true,
+        fillColor: Colors.grey[200],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(vertical: 15),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildCategorySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Category',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildCategoryButton(Icons.people, 'Social', Colors.blue[100]!),
+            _buildCategoryButton(Icons.web, 'Browse', Colors.green[100]!),
+            _buildCategoryButton(Icons.credit_card, 'Card', Colors.red[100]!),
+            _buildCategoryButton(Icons.work, 'Work', Colors.orange[100]!),
+          ],
+        ),
+      ],
     );
   }
 
@@ -236,101 +152,70 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 30),
+          child: Icon(icon, size: 24),
         ),
         SizedBox(height: 5),
-        Text(label),
+        Text(label, style: TextStyle(fontSize: 12)),
       ],
     );
   }
 
-  Widget _buildPasswordItem(String title, String username, Color color) {
+  Widget _buildRecentUsedSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Recent Used',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        SizedBox(height: 10),
+        _buildPasswordItem(
+            'Google Account', 'alriansr@gmail.com', 'assets/icons/google.svg'),
+        _buildPasswordItem('Netflix Personal', 'alriansr@gmail.com',
+            'assets/icons/netflix.svg'),
+        _buildPasswordItem(
+            'Twitter', 'rian_syaifullah', 'assets/icons/twitter.svg'),
+        _buildPasswordItem(
+            'Instagram', 'rian_syaifullah', 'assets/icons/instagram.svg'),
+        _buildPasswordItem(
+            'Facebook', 'rian_syaifullah', 'assets/icons/facebook.svg'),
+      ],
+    );
+  }
+
+  Widget _buildPasswordItem(String title, String username, String iconPath) {
     return ListTile(
-      leading: _getAccountIcon(title),
-      title: Text(title),
+      contentPadding: EdgeInsets.symmetric(vertical: 8),
+      leading: SvgPicture.asset(iconPath, width: 24, height: 24),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(username),
       trailing: IconButton(
-        icon: Icon(Icons.copy),
+        icon: Icon(Icons.copy, color: Colors.grey),
         onPressed: () {
           Clipboard.setData(ClipboardData(text: username));
-          _showNotification('Username copied to clipboard');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Username copied to clipboard')),
+          );
         },
       ),
     );
   }
 
-  Widget _getAccountIcon(String title) {
-    switch (title.toLowerCase()) {
-      case 'google account':
-        return SvgPicture.asset('assets/icons/google.svg',
-            width: 24, height: 24);
-      case 'netflix personal':
-        return SvgPicture.asset('assets/icons/netflix.svg',
-            width: 24, height: 24);
-      case 'twitter':
-        return SvgPicture.asset('assets/icons/twitter.svg',
-            width: 24, height: 24);
-      case 'instagram':
-        return SvgPicture.asset('assets/icons/instagram.svg',
-            width: 24, height: 24);
-      case 'facebook':
-        return SvgPicture.asset('assets/icons/facebook.svg',
-            width: 24, height: 24);
-      default:
-        return CircleAvatar(
-          backgroundColor: _getColorForTitle(title),
-          child: Text(title[0], style: TextStyle(color: Colors.white)),
-        );
-    }
-  }
-
-  Color _getColorForTitle(String title) {
-    return Colors.primaries[title.hashCode % Colors.primaries.length];
-  }
-}
-
-class CustomNotification extends StatelessWidget {
-  final String message;
-
-  const CustomNotification({Key? key, required this.message}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.teal,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle, color: Colors.white),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+  Widget _buildAddAccountButton() {
+    return FloatingActionButton.extended(
+      onPressed: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => AddPasswordScreen(),
+        ));
+      },
+      icon: Icon(Icons.add, color: Colors.white),
+      label: Text('Add Account', style: TextStyle(color: Colors.white)),
+      backgroundColor: Colors.teal,
     );
   }
 }
